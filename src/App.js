@@ -1,6 +1,7 @@
 import './App.css';
 import React, {useRef} from "react";
 import * as bodyPix from "@tensorflow-models/body-pix";
+import '@tensorflow/tfjs-backend-cpu';
 import Webcam from "react-webcam";
 import { Button } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
@@ -417,7 +418,6 @@ function App() {
           }}
         />
       <img src={foot} id="bro" className="prosthetic" display='none' height="1px" width="1px" alt="leg"></img>
-        
          <canvas
           ref={canvasRef}
           style={{

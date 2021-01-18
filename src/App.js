@@ -1,8 +1,5 @@
-import logo from './logo.svg';
 import './App.css';
-import Rushil from './Rushil.js'
 import React, {useRef} from "react";
-import * as tf from "@tensorflow/tfjs";
 import * as bodyPix from "@tensorflow-models/body-pix";
 import Webcam from "react-webcam";
 import { Button } from "@material-ui/core";
@@ -16,7 +13,10 @@ import arm from "./arm.png";
   2. Get body model data
   3. Make sure body part is in frame
   4. Determine optimal position of image overlay through triangulation
-  5. Determine slope of 
+  5. Determine slope of limb relative to camera frame
+  6. Determine image angle of transposition using quadratic regression
+  7. Place image
+  8. Repeat
 */
 
 // 0 = nothing is amputated
@@ -71,12 +71,11 @@ function RightArmPredict(detect) {
     var elbowY = detect.allPoses[0].keypoints[8].position.y
     var elbowScore = detect.allPoses[0].keypoints[8].score
   } catch (error) {
-    //console.log("Could not determine shoulder position model")
+    
   }
   if(shoulderScore >= .75 && elbowScore >= .75)
   {
-    //console.log("hipX ", hipX, "hipY", hipY, "kneeX", kneeX, "kneeY", kneeY)
-    //console.log("elbowX", elbowX, "elbowY", elbowY)
+    
 
     var yOffset = (elbowY- shoulderY)
     var xOffset = (elbowX-shoulderX)
@@ -125,12 +124,11 @@ function LeftArmPredict(detect) {
     var elbowY = detect.allPoses[0].keypoints[7].position.y
     var elbowScore = detect.allPoses[0].keypoints[7].score
   } catch (error) {
-    //console.log("Could not determine shoulder position model")
+    
   }
   if(shoulderScore >= .75 && elbowScore >= .75)
   {
-    //console.log("hipX ", hipX, "hipY", hipY, "kneeX", kneeX, "kneeY", kneeY)
-    //console.log("elbowX", elbowX, "elbowY", elbowY)
+    
 
     var yOffset = (elbowY- shoulderY)
     var xOffset = (elbowX-shoulderX)
@@ -170,11 +168,7 @@ function LeftArmPredict(detect) {
     item.style.top = y2 + 'px';
     item.style.height = 125 + 0.75*(elbowY- shoulderY) + 'px';
     item.style.width = 75 + 0.25*(elbowX - shoulderX) + 'px';
-    
-
-
-    //console.log('Width:  ' +  getWidth() );
-    //console.log('Height: ' + getHeight() );
+   
   }
 }
 
@@ -187,13 +181,11 @@ function RightLegPredict(detect) {
     var kneeY = detect.allPoses[0].keypoints[14].position.y
     var kneeScore = detect.allPoses[0].keypoints[14].score
   } catch (error) {
-    //console.log("Could not determine hip position model")
+    
   }
   
   if(hipScore >= .85 && kneeScore >= .85)
   {
-    //console.log("hipX ", hipX, "hipY", hipY, "kneeX", kneeX, "kneeY", kneeY)
-    //console.log("kneeX", kneeX, "kneeY", kneeY)
 
     var yOffset = .7*(kneeY - hipY)
     var xOffset = .7*(kneeX - hipX)
@@ -243,20 +235,19 @@ function LeftLegPredict(detect) {
     var kneeY = detect.allPoses[0].keypoints[13].position.y
     var kneeScore = detect.allPoses[0].keypoints[13].score
   } catch (error) {
-    //console.log("Could not determine hip position model")
+    
   }
 
   if(hipScore >= .85 && kneeScore >= .85)
   {
-    //console.log("hipX ", hipX, "hipY", hipY, "kneeX", kneeX, "kneeY", kneeY)
-    //console.log("kneeX", kneeX, "kneeY", kneeY)
+    
 
     var yOffset = .7*(kneeY - hipY)
     var xOffset = .7*(kneeX - hipX)
     var newX = kneeX + xOffset
     var newY = kneeY + yOffset 
     var answer = [newX, newY];
-    //console.log("hit", answer);
+   
     var item = document.getElementById("bro");
     // var x2 = answer[0] + 870;
     // var y2 = answer[1] + 625;
@@ -321,17 +312,17 @@ function App() {
         const detect = await net.segmentPersonParts(video);
         
 
-        if (amputated == 4) {
+        if (amputated === 4) {
           //RIGHT ARM\\
           try {
-            var answer = RightArmPredict(detect)
-            console.log("Predict X", answer[0], "Predict Y", answer[1])
+            RightArmPredict(detect)
+            //console.log("Predict X", answer[0], "Predict Y", answer[1])
 
           } catch (error) {
             console.log("Could not determine arm position model")
           }
         }
-        else if (amputated == 3) {
+        else if (amputated === 3) {
           //LEFT ARM\\
           try {
             LeftArmPredict(detect);
@@ -340,10 +331,10 @@ function App() {
             console.log("Could not determine arm position model")
           }
         }
-        else if (amputated == 2) {
+        else if (amputated === 2) {
           //RIGHT LEG\\
           try {
-            var answer = RightLegPredict(detect)
+            RightLegPredict(detect)
             //console.log("Predict X", answer[0], "Predict Y", answer[1])
             
 
@@ -352,10 +343,10 @@ function App() {
           }
         }
 
-        else if (amputated == 1)
+        else if (amputated === 1)
         {
           try {
-            var answer = LeftLegPredict(detect)
+            LeftLegPredict(detect);
             //console.log("Predict X", answer[0], "Predict Y", answer[1])
             
     
@@ -365,27 +356,10 @@ function App() {
         }
       
 
-      //LEFT ARM\\
-        /*try {
-          LeftArmPredict(detect);
-          //console.log("Predict X", answer[0], "Predict Y", answer[1])
-        } catch (error) {
-          console.log("Could not determine arm position model")
-        }*/
-        
-        //draw overlay
-        /*const coloredPartImage = bodyPix.toColoredPartMask(detect);
-
-        bodyPix.drawMask(
-          canvasRef.current, //parse current canvas
-          video, //parse video
-          coloredPartImage, //colored mask
-          0.7, //opacity
-          0, //blur
-          false //image flip
-        );*/
+     
     }
   };
+
 
 
   runBodysegment();
@@ -426,7 +400,7 @@ function App() {
             height: 480,
           }}
         />
-        <img src={arm} id="pro" className="prosthetic" display='none' height="1px" width="1px"></img>
+        <img src={arm} id="pro" className="prosthetic" display='none' height="1px" width="1px" alt="arm"></img>
         </div>
          <canvas
           ref={canvasRef}
@@ -442,7 +416,7 @@ function App() {
             height: 480,
           }}
         />
-      <img src={foot} id="bro" className="prosthetic" display='none' height="1px" width="1px"></img>
+      <img src={foot} id="bro" className="prosthetic" display='none' height="1px" width="1px" alt="leg"></img>
         
          <canvas
           ref={canvasRef}

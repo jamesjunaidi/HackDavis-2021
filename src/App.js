@@ -1,7 +1,7 @@
 import './App.css';
 import React, {useRef} from "react";
 import * as bodyPix from "@tensorflow-models/body-pix";
-import '@tensorflow/tfjs-backend-cpu';
+import * as tf from "@tensorflow/tfjs";
 import Webcam from "react-webcam";
 import { Button } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
@@ -26,7 +26,8 @@ import arm from "./arm.png";
 // 3 = left arm
 // 4 = right arm
 var amputated = 0;
-
+var james = tf;
+console.log(james);
 
 //BUTTON SELECTION FUNCTIONS\\
 function leftLeg() {
